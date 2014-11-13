@@ -7,19 +7,71 @@ output:
 
 
 ## Loading and preprocessing the data
+```{r echo = TRUE}
+archive_name <- "activity.zip"
+file_name <- "activity.csv"
 
+if (!file.exists(file_name)) {
+   unzip(zipfile = archive_name)
+}
 
+data <- read.csv(file = file_name)
+
+data_steps <- data[!is.na(data$steps),]
+data_steps$interval <- as.factor(data_steps$interval)
+
+str(data_steps)
+steps_per_day <- sapply(split(data_steps$steps, data_steps$date), sum)
+
+average_steps <- sapply(split(data_steps$steps, data_steps$interval), mean)
+```
 
 ## What is mean total number of steps taken per day?
+```{r echo = TRUE}
+hist(steps_per_day)
 
+mean(steps_per_day)
 
+median(steps_per_day)
+```
 
 ## What is the average daily activity pattern?
+```{r echo = TRUE}
+plot(x = names(average_steps), y = average_steps, type = "l")
 
-
+names(average_steps)[max(average_steps)]
+```
 
 ## Imputing missing values
+```{r echo = TRUE}
+sum(is.na(data$steps))
 
+data1 <- data
+to_fill <- is.na(data1$steps)
 
+data1[to_fill, ]$steps <- average_steps[data1[to_fill, ]$interval/5 + 1]
+to_fill2 <- is.na(data1$steps)
+
+data1[to_fill2, ]$steps <- steps_per_day[data1[to_fill2, ]$date]/17568
+to_fill3 <- is.na(data1$steps)
+
+steps_per_day1 <- sapply(split(data1$steps, data1$date), sum)
+
+hist(steps_per_day1)
+
+mean(steps_per_day1)
+
+median(steps_per_day1)
+```
+There are more small numbers added for most of NAs where at night when small numbers od steps are done. The mean value has changed a little, the median value is the same.
 
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r echo = TRUE}
+Sys.setlocale("LC_TIME", "English")
+data1$daytype <- weekdays(as.Date(as.character(data1$date)))
+data1$daytype[data1$daytype %in% c("Saturday", "Sunday")] <- "weekend"
+data1$daytype[!data1$daytype %in% c("weekend")] <- "weekday"
+data1$daytype <- as.factor(data1$daytype)
+library(ggplot2)
+qplot(interval, steps, data = data1, facets = daytype~., stat="summary", fun.y = "mean", geom = "line")
+```
