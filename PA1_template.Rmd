@@ -20,7 +20,6 @@ data <- read.csv(file = file_name)
 data_steps <- data[!is.na(data$steps),]
 data_steps$interval <- as.factor(data_steps$interval)
 
-str(data_steps)
 steps_per_day <- sapply(split(data_steps$steps, data_steps$date), sum)
 
 average_steps <- sapply(split(data_steps$steps, data_steps$interval), mean)
@@ -29,43 +28,68 @@ average_steps <- sapply(split(data_steps$steps, data_steps$interval), mean)
 ## What is mean total number of steps taken per day?
 ```{r echo = TRUE}
 hist(steps_per_day)
+```
 
+The mean value
+```{r echo = TRUE}
 mean(steps_per_day)
-
+```
+The median value
+```{r echo = TRUE}
 median(steps_per_day)
 ```
 
 ## What is the average daily activity pattern?
 ```{r echo = TRUE}
 plot(x = names(average_steps), y = average_steps, type = "l")
+```
 
+The number of an interval having a maximum number of steps
+```{r echo = TRUE}
 names(average_steps)[max(average_steps)]
 ```
 
 ## Imputing missing values
 ```{r echo = TRUE}
 sum(is.na(data$steps))
-
+```
+Creating of a copy data set
+```{r echo = TRUE}
 data1 <- data
+```
+Finding NA values in the new data set
+```{r echo = TRUE}
 to_fill <- is.na(data1$steps)
-
+```
+Filling NAs with the avarage numbers of steps for a given interval, although they can be absent.
+```{r echo = TRUE}
 data1[to_fill, ]$steps <- average_steps[data1[to_fill, ]$interval/5 + 1]
+```
+Finding values that are still NA
+```{r echo = TRUE}
 to_fill2 <- is.na(data1$steps)
-
+```
+Filling NAs with average values of steps per day, that are existing always.
+```{r echo = TRUE}
 data1[to_fill2, ]$steps <- steps_per_day[data1[to_fill2, ]$date]/17568
-to_fill3 <- is.na(data1$steps)
 
 steps_per_day1 <- sapply(split(data1$steps, data1$date), sum)
 
 hist(steps_per_day1)
+```
 
+The mean value
+```{r echo = TRUE}
 mean(steps_per_day1)
-
+```
+The median value
+```{r echo = TRUE}
 median(steps_per_day1)
 ```
 There are more small numbers added for most of NAs where at night when small numbers od steps are done. The mean value has changed a little, the median value is the same.
 
 ## Are there differences in activity patterns between weekdays and weekends?
+Changing the locale to english one to havs proper day names. Then creating a new column in the data set and filling it with the factor (weekday/weekend).
 ```{r echo = TRUE}
 Sys.setlocale("LC_TIME", "English")
 data1$daytype <- weekdays(as.Date(as.character(data1$date)))
